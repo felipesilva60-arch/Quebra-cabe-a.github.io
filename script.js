@@ -5,7 +5,6 @@ const preview = document.getElementById('preview');
 const timerElement = document.getElementById('timer');
 const movesElement = document.getElementById('moves');
 
-
 let pieces = [];
 let selected = null;
 let imageURL = '';
@@ -14,333 +13,201 @@ let moves = 0;
 let timer = 0;
 let interval;
 
-
 upload.addEventListener('change', e => {
 
+    const file = e.target.files[0];
 
-  const file = e.target.files[0];
+    if(!file) return;
 
+    const reader = new FileReader();
 
-  if(!file) return;
+    reader.onload = event => {
 
+        imageURL = event.target.result;
+        preview.src = imageURL;
 
-  const reader = new FileReader();
+        createPuzzle();
+    };
 
+    reader.readAsDataURL(file);
 
-  reader.onload = event => {
-
-
-    imageURL = event.target.result;
-
-
-    preview.src = imageURL;
-
-
-    createPuzzle();
-  }
-
-
-  reader.readAsDataURL(file);
 });
-
 
 difficulty.addEventListener('change', () => {
 
+    size = parseInt(difficulty.value);
 
-  size = parseInt(difficulty.value);
+    if(imageURL){
+        createPuzzle();
+    }
 
-
-  if(imageURL){
-    createPuzzle();
-  }
 });
-
 
 function startTimer(){
 
+    clearInterval(interval);
 
-  clearInterval(interval);
+    timer = 0;
+    timerElement.textContent = 0;
 
+    interval = setInterval(() => {
 
-  timer = 0;
+        timer++;
+        timerElement.textContent = timer;
 
+    },1000);
 
-  interval = setInterval(() => {
-
-
-    timer++;
-
-
-    timerElement.textContent = timer;
-
-
-  },1000);
 }
-
 
 function createPuzzle(){
 
+    startTimer();
 
-  startTimer();
+    moves = 0;
+    movesElement.textContent = 0;
 
+    pieces = [];
+    puzzle.innerHTML = '';
 
-  moves = 0;
+    const boardSize = Math.min(600, window.innerWidth - 80);
 
+    puzzle.style.width = boardSize + 'px';
+    puzzle.style.height = boardSize + 'px';
+    puzzle.style.gridTemplateColumns = `repeat(${size},1fr)`;
 
-  movesElement.textContent = moves;
+    const pieceSize = boardSize / size;
 
+    for(let i=0;i<size*size;i++){
 
-  pieces = [];
+        const piece = document.createElement('div');
 
+        piece.classList.add('piece');
 
-  puzzle.innerHTML = '';
+        piece.style.width = pieceSize + 'px';
+        piece.style.height = pieceSize + 'px';
 
+        piece.style.backgroundImage = `url(${imageURL})`;
+        piece.style.backgroundSize = `${boardSize}px ${boardSize}px`;
 
-  const boardSize = window.innerWidth < 700 ? 320 : 600;
+        const x = -(i % size) * pieceSize;
+        const y = -Math.floor(i / size) * pieceSize;
 
+        piece.style.backgroundPosition = `${x}px ${y}px`;
+        piece.dataset.correct = `${x}px ${y}px`;
 
-  puzzle.style.width = boardSize + 'px';
-  puzzle.style.height = boardSize + 'px';
+        piece.addEventListener('click', () => selectPiece(piece));
 
+        pieces.push(piece);
+    }
 
-  puzzle.style.gridTemplateColumns = `repeat(${size},1fr)`;
-
-
-  const pieceSize = boardSize / size;
-
-
-  for(let i=0;i<size*size;i++){
-
-
-    const piece = document.createElement('div');
-
-
-    piece.classList.add('piece');
-
-
-    piece.style.width = pieceSize + 'px';
-    piece.style.height = pieceSize + 'px';
-
-
-    piece.style.backgroundImage = `url(${imageURL})`;
-
-
-    piece.style.backgroundSize = `${boardSize}px ${boardSize}px`;
-
-
-    const x = -(i % size) * pieceSize;
-    const y = -Math.floor(i / size) * pieceSize;
-
-
-    piece.style.backgroundPosition = `${x}px ${y}px`;
-
-
-    piece.dataset.correct = `${x}px ${y}px`;
-
-
-    piece.addEventListener('click', () => selectPiece(piece));
-
-
-    pieces.push(piece);
-  }
-
-
-  shufflePieces();
+    shufflePieces();
 }
-
 
 function shufflePieces(){
 
-
-  const positions = [];
-
-
-  pieces.forEach(piece => {
-    positions.push(piece.style.backgroundPosition);
-  });
-
-
-  do{
-
+    const positions = pieces.map(
+        piece => piece.style.backgroundPosition
+    );
 
     positions.sort(() => Math.random() - 0.5);
 
+    pieces.forEach((piece,index)=>{
 
-  }while(
-    positions.every((pos,index) => {
-      return pos === pieces[index].dataset.correct;
-    })
-  );
+        piece.style.backgroundPosition = positions[index];
 
+    });
 
-  pieces.forEach((piece,index) => {
+    puzzle.innerHTML = '';
 
+    pieces.forEach(piece=>{
 
-    piece.style.backgroundPosition = positions[index];
+        puzzle.appendChild(piece);
 
-
-  });
-
-
-  puzzle.innerHTML = '';
-
-
-  pieces.forEach(piece => {
-
-
-    puzzle.appendChild(piece);
-
-
-  });
+    });
 }
-
 
 function selectPiece(piece){
 
+    if(!selected){
 
-  if(!selected){
+        selected = piece;
+        piece.classList.add('selected');
+        return;
 
-
-    selected = piece;
-
-
-    piece.classList.add('selected');
-
-
-    return;
-  }
-
-
-  swap(selected,piece);
-
-
-  selected.classList.remove('selected');
-
-
-  selected = null;
-
-
-  moves++;
-
-
-  movesElement.textContent = moves;
-
-
-  checkWin();
-}
-
-
-function swap(p1,p2){
-
-
-  const temp = p1.style.backgroundPosition;
-
-
-  p1.style.backgroundPosition = p2.style.backgroundPosition;
-
-
-  p2.style.backgroundPosition = temp;
-}
-
-
-function solvePuzzle(){
-
-
-  let index = 0;
-
-
-  const autoSolve = setInterval(() => {
-
-
-    if(index >= pieces.length){
-
-
-      clearInterval(autoSolve);
-
-
-      setTimeout(() => {
-
-
-        showVictory();
-
-
-      },2000);
-
-
-      return;
     }
 
+    swap(selected,piece);
 
-    pieces[index].style.backgroundPosition =
-      pieces[index].dataset.correct;
+    selected.classList.remove('selected');
+    selected = null;
 
+    moves++;
+    movesElement.textContent = moves;
 
-    index++;
-
-
-  },150);
+    checkWin();
 }
 
+function swap(a,b){
+
+    const temp = a.style.backgroundPosition;
+
+    a.style.backgroundPosition =
+        b.style.backgroundPosition;
+
+    b.style.backgroundPosition = temp;
+}
 
 function checkWin(){
 
+    const won = pieces.every(piece =>
+        piece.style.backgroundPosition ===
+        piece.dataset.correct
+    );
 
-  const won = pieces.every(piece => {
+    if(won){
 
+        clearInterval(interval);
 
-    return piece.style.backgroundPosition === piece.dataset.correct;
+        setTimeout(() => {
 
+            showVictory();
 
-  });
+        },1000);
+    }
+}
 
+function solvePuzzle(){
 
-  if(won){
+    pieces.forEach(piece => {
 
+        piece.style.backgroundPosition =
+            piece.dataset.correct;
 
-    clearInterval(interval);
-
+    });
 
     setTimeout(() => {
 
+        showVictory();
 
-      showVictory();
-
-
-    },1000);
-  }
+    },1500);
 }
+
 function showVictory(){
 
+    const screen = document.createElement('div');
 
-  const screen = document.createElement('div');
+    screen.classList.add('win-screen');
 
+    screen.innerHTML = `
+        <div class="win-box">
+            <h1>🏆 PARABÉNS!</h1>
+            <p>⏱ Tempo: ${timer}s</p>
+            <p>🎯 Movimentos: ${moves}</p>
+            <button onclick="location.reload()">
+                Jogar Novamente
+            </button>
+        </div>
+    `;
 
-  screen.classList.add('win-screen');
-
-
-  screen.innerHTML = `
- 
-    <div class="win-box">
-
-
-      <h1>🏆 PARABÉNS!</h1>
-
-
-      <p>⏱ Tempo: ${timer}s</p>
-
-
-      <p>🎯 Movimentos: ${moves}</p>
-
-
-      <button onclick="location.reload()">
-        Jogar Novamente
-      </button>
-
-
-    </div>
- 
-  `;
-
-
-  document.body.appendChild(screen);
+    document.body.appendChild(screen);
 }
