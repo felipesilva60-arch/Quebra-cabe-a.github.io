@@ -199,7 +199,18 @@ function solvePuzzle(){
 }
 
 function showVictory(){
-
+left mensagem = "";
+    if (yimer < record) {
+        record = timer;
+        localStorage.setItem("recodPuzzle", record );
+        recordElement.textContent = record + "s";
+        mensagem = `
+        <h2 style="color:#22c55e;">
+         🏆 NOVO RECORDE!
+         </h2>
+         `;
+    }
+        
     const screen = document.createElement('div');
 
     screen.classList.add('win-screen');
@@ -207,8 +218,11 @@ function showVictory(){
     screen.innerHTML = `
         <div class="win-box">
             <h1>🏆 PARABÉNS!</h1>
-            <p>⏱ Tempo: ${timer}s</p>
-            <p>🎯 Movimentos: ${moves}</p>
+            ${mensagem}
+        
+            <p>⏱ Tempo: <b>${timer}s</b></p>
+            ,p>🏆 Recorde: <b>${recod}s</b></p>
+            <p>🎯 Movimentos: <b>${moves}</b></p>
             <button onclick="location.reload()">
                 Jogar Novamente
             </button>
