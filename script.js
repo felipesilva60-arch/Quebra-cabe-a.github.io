@@ -12,7 +12,11 @@ let size = 3;
 let moves = 0;
 let timer = 0;
 let interval;
-
+let record = localStorge.getItem("recordPuzzle");
+if (record === null) {
+    record = infinity;/
+}
+ const recordElement = document.getElementById("recordPuzzle");
 upload.addEventListener('change', e => {
 
     const file = e.target.files[0];
