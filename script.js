@@ -14,9 +14,11 @@ let timer = 0;
 let interval;
 let record = localStorge.getItem("recordPuzzle");
 if (record === null) {
-    record = infinity;/
+    record = Infinity;
 }
  const recordElement = document.getElementById("recordPuzzle");
+if ( record!= Infinity) {
+    recordElemnt.textContent = record + "s";
 upload.addEventListener('change', e => {
 
     const file = e.target.files[0];
