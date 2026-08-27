@@ -1,72 +1,90 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quebra-Cabeça</title>
 
-<link rel="stylesheet" href="style.css">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quebra-Cabeça</title>
+
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="background"></div>
+    <div class="background"></div>
 
-<div class="game-container">
+    <div class="game-container">
 
-    <div class="top-bar">
-        <h1>🧩 Quebra-Cabeça</h1>
-        <p>Monte sua foto favorita</p>
-    </div>
-
-    <div class="menu">
-
-        <label class="upload-btn">
-            📷 Escolher Foto
-            <input type="file" id="upload" accept="image/*" hidden>
-        </label>
-
-        <select id="difficulty">
-            <option value="3">🙂 Fácil 3x3</option>
-            <option value="4">😐 Médio 4x4</option>
-            <option value="5">😕 Difícil 5x5</option>
-            <option value="6">😈 Insano 6x6</option>
-        </select>
-
-        <button onclick="shufflePieces()">🔀 Embaralhar</button>
-        <button onclick="solvePuzzle()">✔ Resolver</button>
-
-    </div>
-
-    <div class="stats">
-
-        <div class="card">
-            ⏰
-            <span id="timer">0</span>
-            <small>Segundos</small>
+        <div class="top-bar">
+            <h1>🧩 Quebra-Cabeça</h1>
+            <p>Monte sua foto favorita</p>
         </div>
 
-        <div class="card">
-            🎯
-            <span id="moves">0</span>
-            <small>Movimentos</small>
+        <div class="menu">
+
+            <label class="upload-btn">
+                📷 Escolher Foto
+                <input
+                    type="file"
+                    id="upload"
+                    accept="image/*"
+                    hidden
+                >
+            </label>
+
+            <select id="difficulty">
+                <option value="3">🙂 Fácil 3x3</option>
+                <option value="4">😐 Médio 4x4</option>
+                <option value="5">😕 Difícil 5x5</option>
+                <option value="6">😈 Insano 6x6</option>
+            </select>
+
+            <button onclick="shufflePieces()">
+                🔀 Embaralhar
+            </button>
+
+            <button onclick="solvePuzzle()">
+                ✔ Resolver
+            </button>
+
         </div>
-<div class="crd">
 
-    <span id+"record">--</span>
-    <smal> Recorde</smal>
+        <div class="stats">
+
+            <div class="card">
+                ⏰
+                <span id="timer">0</span>
+                <small>Segundos</small>
+            </div>
+
+            <div class="card">
+                🎯
+                <span id="moves">0</span>
+                <small>Movimentos</small>
+            </div>
+
+            <div class="card">
+                🏆
+                <span id="recordPuzzle">--</span>
+                <small>Recorde</small>
+            </div>
+
+        </div>
+
+        <div id="puzzle"></div>
+
+        <div class="preview-box">
+            <h2>Imagem Original</h2>
+
+            <img
+                id="preview"
+                alt="Imagem original"
+            >
+        </div>
+
     </div>
 
-    <div id="puzzle"></div>
-
-    <div class="preview-box">
-        <h2>Imagem Original</h2>
-        <img id="preview">
-    </div>
-
-</div>
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
 
 </body>
 </html>
