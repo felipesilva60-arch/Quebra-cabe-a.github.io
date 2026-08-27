@@ -1,233 +1,559 @@
-const puzzle = document.getElementById('puzzle');
-const upload = document.getElementById('upload');
-const difficulty = document.getElementById('difficulty');
-const preview = document.getElementById('preview');
-const timerElement = document.getElementById('timer');
-const movesElement = document.getElementById('moves');
+const puzzle = document.getElementById("puzzle");
+const upload = document.getElementById("upload");
+const difficulty = document.getElementById("difficulty");
+const preview = document.getElementById("preview");
+const timerElement = document.getElementById("timer");
+const movesElement = document.getElementById("moves");
+const recordElement = document.getElementById("recordPuzzle");
 
 let pieces = [];
 let selected = null;
-let imageURL = '';
+let imageURL = "";
+
 let size = 3;
+
 let moves = 0;
 let timer = 0;
-let interval;
-let record = localStorge.getItem("recordPuzzle");
+let interval = null;
+
+let gameStarted = false;
+let gameFinished = false;
+
+
+// ==========================================
+// RECORDE
+// ==========================================
+
+let record = localStorage.getItem("recordPuzzle");
+
 if (record === null) {
     record = Infinity;
+} else {
+    record = Number(record);
 }
- const recordElement = document.getElementById("recordPuzzle");
-if ( record!= Infinity) {
-    recordElemnt.textContent = record + "s";
-upload.addEventListener('change', e => {
 
-    const file = e.target.files[0];
+updateRecord();
 
-    if(!file) return;
+function updateRecord() {
+
+    if (!recordElement) return;
+
+    if (record === Infinity) {
+        recordElement.textContent = "--";
+    } else {
+        recordElement.textContent = record + "s";
+    }
+}
+
+
+// ==========================================
+// ESCOLHER FOTO
+// ==========================================
+
+upload.addEventListener("change", function (event) {
+
+    const file = event.target.files[0];
+
+    if (!file) return;
 
     const reader = new FileReader();
 
-    reader.onload = event => {
+    reader.onload = function (e) {
 
-        imageURL = event.target.result;
+        imageURL = e.target.result;
+
         preview.src = imageURL;
+        preview.style.display = "block";
 
         createPuzzle();
     };
 
     reader.readAsDataURL(file);
-
 });
 
-difficulty.addEventListener('change', () => {
+
+// ==========================================
+// ALTERAR DIFICULDADE
+// ==========================================
+
+difficulty.addEventListener("change", function () {
 
     size = parseInt(difficulty.value);
 
-    if(imageURL){
+    if (imageURL) {
         createPuzzle();
     }
-
 });
 
-function startTimer(){
+
+// ==========================================
+// CRONÔMETRO
+// ==========================================
+
+function startTimer() {
 
     clearInterval(interval);
 
     timer = 0;
-    timerElement.textContent = 0;
 
-    interval = setInterval(() => {
+    timerElement.textContent = "0";
 
-        timer++;
-        timerElement.textContent = timer;
+    interval = setInterval(function () {
 
-    },1000);
+        if (!gameFinished) {
 
+            timer++;
+
+            timerElement.textContent = timer;
+        }
+
+    }, 1000);
 }
 
-function createPuzzle(){
 
-    startTimer();
+// ==========================================
+// CRIAR PUZZLE
+// ==========================================
+
+function createPuzzle() {
+
+    clearInterval(interval);
 
     moves = 0;
-    movesElement.textContent = 0;
+
+    movesElement.textContent = "0";
+
+    selected = null;
+
+    gameFinished = false;
+
+    gameStarted = true;
 
     pieces = [];
-    puzzle.innerHTML = '';
 
-    const boardSize = Math.min(600, window.innerWidth - 80);
+    puzzle.innerHTML = "";
 
-    puzzle.style.width = boardSize + 'px';
-    puzzle.style.height = boardSize + 'px';
-    puzzle.style.gridTemplateColumns = `repeat(${size},1fr)`;
+    const boardSize =
+        Math.min(600, window.innerWidth - 80);
 
-    const pieceSize = boardSize / size;
+    puzzle.style.width =
+        boardSize + "px";
 
-    for(let i=0;i<size*size;i++){
+    puzzle.style.height =
+        boardSize + "px";
 
-        const piece = document.createElement('div');
+    puzzle.style.gridTemplateColumns =
+        `repeat(${size}, 1fr)`;
 
-        piece.classList.add('piece');
+    const pieceSize =
+        boardSize / size;
 
-        piece.style.width = pieceSize + 'px';
-        piece.style.height = pieceSize + 'px';
 
-        piece.style.backgroundImage = `url(${imageURL})`;
-        piece.style.backgroundSize = `${boardSize}px ${boardSize}px`;
+    // ======================================
+    // CRIAR AS PEÇAS
+    // ======================================
 
-        const x = -(i % size) * pieceSize;
-        const y = -Math.floor(i / size) * pieceSize;
+    for (
+        let i = 0;
+        i < size * size;
+        i++
+    ) {
 
-        piece.style.backgroundPosition = `${x}px ${y}px`;
-        piece.dataset.correct = `${x}px ${y}px`;
+        const piece =
+            document.createElement("div");
 
-        piece.addEventListener('click', () => selectPiece(piece));
+        piece.classList.add("piece");
+
+        piece.style.width =
+            pieceSize + "px";
+
+        piece.style.height =
+            pieceSize + "px";
+
+        piece.style.backgroundImage =
+            `url("${imageURL}")`;
+
+        piece.style.backgroundSize =
+            `${boardSize}px ${boardSize}px`;
+
+
+        const x =
+            -(i % size) * pieceSize;
+
+        const y =
+            -Math.floor(i / size) * pieceSize;
+
+
+        const position =
+            `${x}px ${y}px`;
+
+
+        piece.style.backgroundPosition =
+            position;
+
+        piece.dataset.correct =
+            position;
+
+
+        piece.addEventListener(
+            "click",
+            function () {
+                selectPiece(piece);
+            }
+        );
+
 
         pieces.push(piece);
     }
 
-    shufflePieces();
-}
 
-function shufflePieces(){
-
-    const positions = pieces.map(
-        piece => piece.style.backgroundPosition
-    );
-
-    positions.sort(() => Math.random() - 0.5);
-
-    pieces.forEach((piece,index)=>{
-
-        piece.style.backgroundPosition = positions[index];
-
-    });
-
-    puzzle.innerHTML = '';
-
-    pieces.forEach(piece=>{
+    // Coloca as peças no tabuleiro
+    pieces.forEach(function (piece) {
 
         puzzle.appendChild(piece);
 
     });
+
+
+    // Embaralha
+    shufflePieces(false);
+
+    startTimer();
 }
 
-function selectPiece(piece){
 
-    if(!selected){
+// ==========================================
+// EMBARALHAR
+// ==========================================
 
-        selected = piece;
-        piece.classList.add('selected');
+function shufflePieces(resetGame = true) {
+
+    // Não faz nada se ainda não houver foto
+    if (!imageURL || pieces.length === 0) {
+
+        if (resetGame) {
+            alert("📷 Escolha uma foto primeiro!");
+        }
+
         return;
-
     }
 
-    swap(selected,piece);
 
-    selected.classList.remove('selected');
+    clearInterval(interval);
+
     selected = null;
 
+    pieces.forEach(function (piece) {
+
+        piece.classList.remove("selected");
+
+    });
+
+
+    const positions =
+        pieces.map(function (piece) {
+
+            return piece.style.backgroundPosition;
+
+        });
+
+
+    // Fisher-Yates
+    for (
+        let i = positions.length - 1;
+        i > 0;
+        i--
+    ) {
+
+        const j =
+            Math.floor(Math.random() * (i + 1));
+
+
+        [
+            positions[i],
+            positions[j]
+        ] = [
+            positions[j],
+            positions[i]
+        ];
+    }
+
+
+    // Evita começar já resolvido
+    let alreadySolved = positions.every(
+        function (position, index) {
+
+            return position ===
+                pieces[index].dataset.correct;
+
+        }
+    );
+
+
+    if (alreadySolved && positions.length > 1) {
+
+        [
+            positions[0],
+            positions[1]
+        ] = [
+            positions[1],
+            positions[0]
+        ];
+    }
+
+
+    pieces.forEach(function (piece, index) {
+
+        piece.style.backgroundPosition =
+            positions[index];
+
+    });
+
+
+    if (resetGame) {
+
+        moves = 0;
+
+        movesElement.textContent = "0";
+
+        gameFinished = false;
+
+        startTimer();
+    }
+}
+
+
+// ==========================================
+// SELECIONAR PEÇA
+// ==========================================
+
+function selectPiece(piece) {
+
+    if (gameFinished) return;
+
+
+    // Primeira peça
+    if (!selected) {
+
+        selected = piece;
+
+        piece.classList.add("selected");
+
+        return;
+    }
+
+
+    // Clicou na mesma peça
+    if (selected === piece) {
+
+        piece.classList.remove("selected");
+
+        selected = null;
+
+        return;
+    }
+
+
+    // Trocar peças
+    swap(selected, piece);
+
+
+    selected.classList.remove("selected");
+
+    selected = null;
+
+
     moves++;
-    movesElement.textContent = moves;
+
+    movesElement.textContent =
+        moves;
+
 
     checkWin();
 }
 
-function swap(a,b){
 
-    const temp = a.style.backgroundPosition;
+// ==========================================
+// TROCAR PEÇAS
+// ==========================================
+
+function swap(a, b) {
+
+    const temp =
+        a.style.backgroundPosition;
+
 
     a.style.backgroundPosition =
         b.style.backgroundPosition;
 
-    b.style.backgroundPosition = temp;
+
+    b.style.backgroundPosition =
+        temp;
 }
 
-function checkWin(){
 
-    const won = pieces.every(piece =>
-        piece.style.backgroundPosition ===
-        piece.dataset.correct
-    );
+// ==========================================
+// VERIFICAR VITÓRIA
+// ==========================================
 
-    if(won){
+function checkWin() {
+
+    const won =
+        pieces.every(function (piece) {
+
+            return piece.style.backgroundPosition ===
+                piece.dataset.correct;
+
+        });
+
+
+    if (won) {
+
+        gameFinished = true;
 
         clearInterval(interval);
 
-        setTimeout(() => {
+        setTimeout(function () {
 
             showVictory();
 
-        },1000);
+        }, 400);
     }
 }
 
-function solvePuzzle(){
 
-    pieces.forEach(piece => {
+// ==========================================
+// RESOLVER
+// ==========================================
+
+function solvePuzzle() {
+
+    // Impede resolver sem foto
+    if (!imageURL || pieces.length === 0) {
+
+        alert("📷 Escolha uma foto primeiro!");
+
+        return;
+    }
+
+
+    if (gameFinished) return;
+
+
+    clearInterval(interval);
+
+    selected = null;
+
+
+    pieces.forEach(function (piece) {
+
+        piece.classList.remove("selected");
 
         piece.style.backgroundPosition =
             piece.dataset.correct;
 
     });
 
-    setTimeout(() => {
+
+    gameFinished = true;
+
+
+    setTimeout(function () {
 
         showVictory();
 
-    },1500);
+    }, 500);
 }
 
-function showVictory(){
-left mensagem = "";
-    if (yimer < record) {
-        record = timer;
-        localStorage.setItem("recodPuzzle", record );
-        recordElement.textContent = record + "s";
-        mensagem = `
-        <h2 style="color:#22c55e;">
-         🏆 NOVO RECORDE!
-         </h2>
-         `;
-    }
-        
-    const screen = document.createElement('div');
 
-    screen.classList.add('win-screen');
+// ==========================================
+// TELA DE VITÓRIA
+// ==========================================
+
+function showVictory() {
+
+    // Evita criar duas telas
+    if (document.querySelector(".win-screen")) {
+        return;
+    }
+
+
+    let mensagem = "";
+
+
+    // Novo recorde
+    if (timer < record) {
+
+        record = timer;
+
+
+        localStorage.setItem(
+            "recordPuzzle",
+            record
+        );
+
+
+        updateRecord();
+
+
+        mensagem = `
+            <h2 style="color:#22c55e;">
+                🏆 NOVO RECORDE!
+            </h2>
+        `;
+    }
+
+
+    const screen =
+        document.createElement("div");
+
+
+    screen.classList.add("win-screen");
+
 
     screen.innerHTML = `
         <div class="win-box">
+
             <h1>🏆 PARABÉNS!</h1>
+
             ${mensagem}
-        
-            <p>⏱ Tempo: <b>${timer}s</b></p>
-            ,p>🏆 Recorde: <b>${recod}s</b></p>
-            <p>🎯 Movimentos: <b>${moves}</b></p>
+
+            <p>
+                ⏱ Tempo:
+                <b>${timer}s</b>
+            </p>
+
+            <p>
+                🏆 Recorde:
+                <b>
+                    ${
+                        record === Infinity
+                            ? "--"
+                            : record + "s"
+                    }
+                </b>
+            </p>
+
+            <p>
+                🎯 Movimentos:
+                <b>${moves}</b>
+            </p>
+
             <button onclick="location.reload()">
-                Jogar Novamente
+                🔄 Jogar Novamente
             </button>
+
         </div>
     `;
 
+
     document.body.appendChild(screen);
 }
+
+
+// ==========================================
+// DEIXAR FUNÇÕES DISPONÍVEIS PARA O HTML
+// ==========================================
+
+window.shufflePieces = shufflePieces;
+window.solvePuzzle = solvePuzzle;
